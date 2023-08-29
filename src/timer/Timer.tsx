@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { getDurationFromCycle, getDurationLeft, getTimerObject } from "./utils";
-import { DurationConfig } from "./types";
+import {
+  getDurationFromCycle,
+  getDurationLeft,
+  getTimerObject,
+} from "../utils";
+import { DurationConfig } from "../types";
+import {
+  getMessageFromCycle,
+  notifTimerStart,
+  notifTmerStop,
+} from "./notification";
 
 type Props = {
   durationConfig: DurationConfig;
-  onComplete?: () => void;
 };
 
-export const Timer: React.FC<Props> = ({
-  durationConfig,
-  onComplete = () => {},
-}) => {
+export const Timer: React.FC<Props> = ({ durationConfig }) => {
   const [state, setState] = useState<
     "paused" | "running" | "finished" | "idle"
   >("idle");
@@ -20,7 +25,7 @@ export const Timer: React.FC<Props> = ({
     getDurationFromCycle(durationConfig, currentCycle)
   );
 
-  const startTimer = (duration: number) => {
+  const startTimer = (duration: number, cycle: number) => {
     const endDate = new Date();
     endDate.setTime(endDate.getTime() + duration);
 
@@ -37,48 +42,56 @@ export const Timer: React.FC<Props> = ({
 
     setState("running");
     setIntervalId(newId);
+    notifTimerStart(duration, getMessageFromCycle(durationConfig, cycle));
   };
 
   const pauseTimer = () => {
     setState("paused");
     setIntervalId(undefined);
     clearInterval(intervalId);
+    notifTmerStop();
   };
 
-  const finishTimer = () => {
+  const cycleTimer = () => {
     let nextCycle = currentCycle + 1;
-
     if (nextCycle > durationConfig.numCycles) {
-      setState("idle");
-      onComplete();
-      return;
+      nextCycle = 1;
     }
-
-    const nextDuration = getDurationFromCycle(durationConfig, currentCycle + 1);
+    const nextDuration = getDurationFromCycle(durationConfig, nextCycle);
     setDurationLeft(nextDuration);
     setCurrentCycle(nextCycle);
-    setTimeout(() => startTimer(nextDuration), 0);
+    setTimeout(() => startTimer(nextDuration, nextCycle), 0);
+  };
+
+  const resetTimer = () => {
+    setState("idle");
+    setCurrentCycle(1);
+    setIntervalId(undefined);
+    clearInterval(intervalId);
+    notifTmerStop();
   };
 
   // clean up any intervals on destroy and when intervalId changes
   useEffect(() => () => clearInterval(intervalId), [intervalId]);
 
-  // changes to duration updates current duration only if idle
+  // changes to config updates timer only if idle
   useEffect(() => {
-    if (state === "idle") {
-      setDurationLeft(getDurationFromCycle(durationConfig, currentCycle));
-    }
+    if (state === "idle")
+      setDurationLeft(getDurationFromCycle(durationConfig, 1));
   }, [durationConfig, setDurationLeft, state, currentCycle]);
 
   return (
     <>
       <pre>{JSON.stringify(getTimerObject(durationLeft), null, 2)}</pre>
       <div>
-        <button onClick={() => startTimer(durationLeft)}>start</button>
+        <button onClick={resetTimer}>reset</button>
+        <button onClick={() => startTimer(durationLeft, currentCycle)}>
+          start
+        </button>
         <button onClick={pauseTimer}>pause</button>
         <button
           style={{ display: state !== "finished" ? "none" : "inline-block" }}
-          onClick={finishTimer}
+          onClick={cycleTimer}
         >
           finish
         </button>

@@ -1,12 +1,12 @@
 import { atom, useAtom } from "jotai";
 import { DurationConfig, LiveDurationConfig } from "./types";
-import { Timer } from "./Timer";
+import { Timer } from "./timer/Timer";
 
 const defaultConfig: DurationConfig = {
   work: 5_000,
   shortbreak: 2_000,
   longbreak: 10_000,
-  numCycles: 3,
+  numCycles: 4,
 };
 
 // const defaultConfig: DurationConfig = {
@@ -22,8 +22,18 @@ const currentConfigAtom = atom<LiveDurationConfig>({
 });
 
 function App() {
-  const [durationConfig, setDurationConfig] = useAtom(currentConfigAtom);
-  return <Timer durationConfig={durationConfig} />;
+  const [durationConfig] = useAtom(currentConfigAtom);
+
+  const requestNotifcation = () => {
+    Notification.requestPermission();
+  };
+
+  return (
+    <>
+      <Timer durationConfig={durationConfig} />
+      <button onClick={requestNotifcation}>enable notification</button>
+    </>
+  );
 }
 
 export default App;

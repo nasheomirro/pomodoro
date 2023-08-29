@@ -8,8 +8,3 @@ export type DurationConfig = {
 export type LiveDurationConfig = DurationConfig & {
   currCycle: number;
 };
-
-export type TimerData = {
-  minutes: number;
-  seconds: number;
-};
