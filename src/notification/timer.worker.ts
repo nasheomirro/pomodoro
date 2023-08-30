@@ -1,10 +1,19 @@
-import { TimerPayload } from "./notification";
+/*
+  Counting on the main thread to execute a timeout callback is unreliable,
+  because it's possible the browser might limit resources when the app is inactive.
+*/
+
+type TimerPayload =
+  | {
+      type: "start";
+      duration: number;
+      message: string;
+    }
+  | {
+      type: "stop";
+    };
 
 let timeoutId: undefined | number = undefined;
-
-// use of worker is so that setTimeout will fire at the intended moment.
-// browsers sometimes delay or stop background processes meaning we might miss
-// out on notifications.
 
 onmessage = function (e) {
   const data = e.data as TimerPayload;

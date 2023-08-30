@@ -1,28 +1,21 @@
 import React, { useEffect, useState } from "react";
-import {
-  getDurationFromCycle,
-  getDurationLeft,
-  getTimerObject,
-} from "../utils";
-import { DurationConfig } from "../types";
-import {
-  getMessageFromCycle,
-  notifTimerStart,
-  notifTmerStop,
-} from "./notification";
+import { PomoConfig } from "../types";
+import { getDurationLeft, getTimerObject } from "../utils";
+import { getCycleEndMessage, getDurationFromCycle } from "./duration";
+import { workerTimerStart, workerTimerStop } from "../notification/controls";
 
 type Props = {
-  durationConfig: DurationConfig;
+  config: PomoConfig;
 };
 
-export const Timer: React.FC<Props> = ({ durationConfig }) => {
+export const Timer: React.FC<Props> = ({ config }) => {
   const [state, setState] = useState<
     "paused" | "running" | "finished" | "idle"
   >("idle");
   const [intervalId, setIntervalId] = useState<undefined | number>();
   const [currentCycle, setCurrentCycle] = useState(1);
   const [durationLeft, setDurationLeft] = useState(
-    getDurationFromCycle(durationConfig, currentCycle)
+    getDurationFromCycle(config, currentCycle)
   );
 
   const startTimer = (duration: number, cycle: number) => {
@@ -42,22 +35,22 @@ export const Timer: React.FC<Props> = ({ durationConfig }) => {
 
     setState("running");
     setIntervalId(newId);
-    notifTimerStart(duration, getMessageFromCycle(durationConfig, cycle));
+    workerTimerStart(duration, getCycleEndMessage(config, cycle));
   };
 
   const pauseTimer = () => {
     setState("paused");
     setIntervalId(undefined);
     clearInterval(intervalId);
-    notifTmerStop();
+    workerTimerStop();
   };
 
   const cycleTimer = () => {
     let nextCycle = currentCycle + 1;
-    if (nextCycle > durationConfig.numCycles) {
+    if (nextCycle > config.numCycles) {
       nextCycle = 1;
     }
-    const nextDuration = getDurationFromCycle(durationConfig, nextCycle);
+    const nextDuration = getDurationFromCycle(config, nextCycle);
     setDurationLeft(nextDuration);
     setCurrentCycle(nextCycle);
     setTimeout(() => startTimer(nextDuration, nextCycle), 0);
@@ -68,7 +61,7 @@ export const Timer: React.FC<Props> = ({ durationConfig }) => {
     setCurrentCycle(1);
     setIntervalId(undefined);
     clearInterval(intervalId);
-    notifTmerStop();
+    workerTimerStop();
   };
 
   // clean up any intervals on destroy and when intervalId changes
@@ -76,9 +69,8 @@ export const Timer: React.FC<Props> = ({ durationConfig }) => {
 
   // changes to config updates timer only if idle
   useEffect(() => {
-    if (state === "idle")
-      setDurationLeft(getDurationFromCycle(durationConfig, 1));
-  }, [durationConfig, setDurationLeft, state, currentCycle]);
+    if (state === "idle") setDurationLeft(getDurationFromCycle(config, 1));
+  }, [config, setDurationLeft, state, currentCycle]);
 
   return (
     <>

@@ -1,11 +1,13 @@
 import { atom, useAtom } from "jotai";
-import { DurationConfig, LiveDurationConfig } from "./types";
+import { PomoConfig } from "./types";
 import { Timer } from "./timer/Timer";
+import { useState } from "react";
+import { NotificationAudio } from "./notification/NotifcationAudio";
 
-const defaultConfig: DurationConfig = {
-  work: 5_000,
+const defaultConfig: PomoConfig = {
+  work: 3_000,
   shortbreak: 2_000,
-  longbreak: 10_000,
+  longbreak: 4_000,
   numCycles: 4,
 };
 
@@ -16,22 +18,35 @@ const defaultConfig: DurationConfig = {
 //   numCycles: 9,
 // };
 
-const currentConfigAtom = atom<LiveDurationConfig>({
+const currentConfigAtom = atom<PomoConfig>({
   ...defaultConfig,
-  currCycle: 1,
 });
 
 function App() {
-  const [durationConfig] = useAtom(currentConfigAtom);
+  const [config] = useAtom(currentConfigAtom);
+  const [permission, setPermission] = useState(Notification.permission);
 
   const requestNotifcation = () => {
-    Notification.requestPermission();
+    if ("Notification" in window) {
+      Notification.requestPermission((response) => {
+        setPermission(response);
+      });
+    }
   };
+
+  if (permission !== "granted") {
+    return (
+      <>
+        <p>please enable notifications</p>
+        <button onClick={requestNotifcation}>enable notification</button>
+      </>
+    );
+  }
 
   return (
     <>
-      <Timer durationConfig={durationConfig} />
-      <button onClick={requestNotifcation}>enable notification</button>
+      <NotificationAudio config={config} />
+      <Timer config={config} />;
     </>
   );
 }

@@ -1,5 +1,3 @@
-import { DurationConfig } from "./types";
-
 export const minutesToMs = (n: number) => n * 60 * 1000;
 
 export const getTimerObject = (durationMs: number) => {
@@ -8,20 +6,11 @@ export const getTimerObject = (durationMs: number) => {
   return { minutes, seconds };
 };
 
-export const getDurationFromCycle = (
-  durationConfig: DurationConfig,
-  currentCycle: number
-) => {
-  if (currentCycle >= durationConfig.numCycles) {
-    return durationConfig.longbreak;
-  }
-  return currentCycle % 2 === 0
-    ? durationConfig.shortbreak
-    : durationConfig.work;
-};
-
 export const getDurationLeft = (end: Date) => {
   const now = new Date();
   const leftMs = end.getTime() - now.getTime();
   return leftMs;
 };
+
+export const delay = (ms: number): Promise<void> =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
