@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { PomoConfig } from "../types";
 import { getDurationLeft, getTimerObject } from "../utils";
-import { getCycleEndMessage, getDurationFromCycle } from "./duration";
+import { getEndMessageOfCycle, getDurationOfCycle } from "./duration";
 import { workerTimerStart, workerTimerStop } from "../notification/controls";
+import { useSettings } from "../settings";
 
-type Props = {
-  config: PomoConfig;
-};
-
-export const Timer: React.FC<Props> = ({ config }) => {
+export const Timer: React.FC = () => {
+  const config = useSettings((store) => store.config);
   const [state, setState] = useState<
     "paused" | "running" | "finished" | "idle"
   >("idle");
   const [intervalId, setIntervalId] = useState<undefined | number>();
-  const [currentCycle, setCurrentCycle] = useState(1);
+  const [currentCycle, setCurrentCycle] = useState(0.5);
   const [durationLeft, setDurationLeft] = useState(
-    getDurationFromCycle(config, currentCycle)
+    getDurationOfCycle(config, currentCycle)
   );
 
   const startTimer = (duration: number, cycle: number) => {
@@ -35,7 +32,7 @@ export const Timer: React.FC<Props> = ({ config }) => {
 
     setState("running");
     setIntervalId(newId);
-    workerTimerStart(duration, getCycleEndMessage(config, cycle));
+    workerTimerStart(duration, getEndMessageOfCycle(config, cycle));
   };
 
   const pauseTimer = () => {
@@ -46,11 +43,11 @@ export const Timer: React.FC<Props> = ({ config }) => {
   };
 
   const cycleTimer = () => {
-    let nextCycle = currentCycle + 1;
+    let nextCycle = currentCycle + 0.5;
     if (nextCycle > config.numCycles) {
-      nextCycle = 1;
+      nextCycle = 0.5;
     }
-    const nextDuration = getDurationFromCycle(config, nextCycle);
+    const nextDuration = getDurationOfCycle(config, nextCycle);
     setDurationLeft(nextDuration);
     setCurrentCycle(nextCycle);
     setTimeout(() => startTimer(nextDuration, nextCycle), 0);
@@ -69,7 +66,7 @@ export const Timer: React.FC<Props> = ({ config }) => {
 
   // changes to config updates timer only if idle
   useEffect(() => {
-    if (state === "idle") setDurationLeft(getDurationFromCycle(config, 1));
+    if (state === "idle") setDurationLeft(getDurationOfCycle(config, 0.5));
   }, [config, setDurationLeft, state, currentCycle]);
 
   return (
@@ -82,10 +79,15 @@ export const Timer: React.FC<Props> = ({ config }) => {
         </button>
         <button onClick={pauseTimer}>pause</button>
         <button
-          style={{ display: state !== "finished" ? "none" : "inline-block" }}
+          style={{
+            display:
+              state === "finished" || state === "paused"
+                ? "inline-block"
+                : "none",
+          }}
           onClick={cycleTimer}
         >
-          finish
+          next
         </button>
       </div>
     </>
