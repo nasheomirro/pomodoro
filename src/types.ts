@@ -1,4 +1,4 @@
-export type Config = {
+export type Settings = {
   /** the duration (in minutes) for each part of pomodoro */
   durationMins: {
     work: number;
@@ -10,3 +10,5 @@ export type Config = {
   /** a number from 0 - 100 for the volume */
   volume: number;
 };
+
+export type TimerState = "paused" | "running" | "idle";

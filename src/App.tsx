@@ -1,14 +1,13 @@
+import { DoneAudio } from "./timer/DoneAudio";
 import { Timer } from "./timer/Timer";
-import { NotificationAudio } from "./notification/NotifcationAudio";
-import { Settings } from "./settings/Settings";
 
 function App() {
   return (
-    <>
-      <NotificationAudio />
+    <div className="grow flex-col flex items-center justify-center p-32">
       <Timer />
-      <Settings />
-    </>
+      <DoneAudio />
+      {/* <Settings /> */}
+    </div>
   );
 }
 

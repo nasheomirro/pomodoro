@@ -1,15 +1,24 @@
 import { SubmitHandler, useForm } from "react-hook-form";
-import { useSettings } from ".";
-import { Config } from "../types";
 import { EnableNotification } from "./EnableNotification";
+import { Settings } from "../types";
+import { useTimer } from "../app";
+import { shallow } from "zustand/shallow";
 
-export const Settings: React.FC = () => {
-  const config = useSettings((store) => store.config);
-  const setConfig = useSettings((store) => store.setConfig);
-  const { register, handleSubmit } = useForm<Config>({ defaultValues: config });
+export const SettingsComponent: React.FC = () => {
+  const { settings, setSettings } = useTimer(
+    ({ settings, setSettings }) => ({
+      settings,
+      setSettings,
+    }),
+    shallow
+  );
 
-  const onSubmit: SubmitHandler<Config> = (data) => {
-    setConfig(data);
+  const { register, handleSubmit } = useForm<Settings>({
+    defaultValues: settings,
+  });
+
+  const onSubmit: SubmitHandler<Settings> = (data) => {
+    setSettings(data);
   };
 
   return (

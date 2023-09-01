@@ -1,11 +1,14 @@
-import { useNotificationPermissions } from "../notification/permissions";
+import { shallow } from "zustand/shallow";
+import { useNotificationPermission } from "../app";
 
 export const EnableNotification: React.FC = () => {
-  const setPermission = useNotificationPermissions(
-    (store) => store.setPermission
+  const { permission, setPermission } = useNotificationPermission(
+    (store) => ({ ...store }),
+    shallow
   );
 
-  if (!("Notification" in window)) return null;
+  if (permission === "NA") return null;
+
   return (
     <button
       type="button"

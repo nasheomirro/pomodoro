@@ -1,38 +1,55 @@
-import React, { useEffect, useState } from "react";
-import { getDurationLeft, getTimerObject } from "../utils";
-import { getEndMessageOfCycle, getDurationOfCycle } from "./duration";
-import { workerTimerStart, workerTimerStop } from "../notification/controls";
-import { useSettings } from "../settings";
+import React, { useCallback, useEffect, useState } from "react";
+import { join } from "../utils";
+
+import { ReactComponent as Reset } from "../assets/reset.svg";
+import { ReactComponent as Play } from "../assets/play.svg";
+import { ReactComponent as Pause } from "../assets/pause.svg";
+import { ReactComponent as Next } from "../assets/next.svg";
+
+import {
+  getDurationOfCycle,
+  getNameOfCycle,
+  getCycleOfCycle,
+  getRemainingDuration,
+  getMinuteRepresentation,
+} from "./utils";
+
+import { worker, workerTimerStart, workerTimerStop } from "./timerWorker";
+import { shallow } from "zustand/shallow";
+import { useTimer } from "../app";
 
 export const Timer: React.FC = () => {
-  const config = useSettings((store) => store.config);
-  const [state, setState] = useState<
-    "paused" | "running" | "finished" | "idle"
-  >("idle");
-  const [intervalId, setIntervalId] = useState<undefined | number>();
-  const [currentCycle, setCurrentCycle] = useState(0.5);
-  const [durationLeft, setDurationLeft] = useState(
-    getDurationOfCycle(config, currentCycle)
-  );
+  const {
+    settings,
+    currentCycle,
+    state,
+    remainingDuration,
+    setState,
+    setCurrentCycle,
+    setRemainingDuration,
+  } = useTimer((store) => ({ ...store }), shallow);
 
-  const startTimer = (duration: number, cycle: number) => {
+  const [intervalId, setIntervalId] = useState<undefined | number>();
+
+  // start the presentational timer and the worker's timer
+  const startTimer = () => {
     const endDate = new Date();
-    endDate.setTime(endDate.getTime() + duration);
+    endDate.setTime(endDate.getTime() + remainingDuration);
 
     const newId = setInterval(() => {
-      let newDuration = getDurationLeft(endDate);
-      if (newDuration <= 0) {
-        newDuration = 0;
+      let newDuration = Math.max(getRemainingDuration(endDate), 0);
+      // if presentational has finished, just clear the interval and wait
+      // for the worker to fire.
+      if (newDuration === 0) {
         clearInterval(newId);
         setIntervalId(undefined);
-        setState("finished");
       }
-      setDurationLeft(newDuration);
+      setRemainingDuration(newDuration);
     }, 1000);
-
+    console.log(remainingDuration);
+    workerTimerStart(remainingDuration);
     setState("running");
     setIntervalId(newId);
-    workerTimerStart(duration, getEndMessageOfCycle(config, cycle));
   };
 
   const pauseTimer = () => {
@@ -42,54 +59,82 @@ export const Timer: React.FC = () => {
     workerTimerStop();
   };
 
-  const cycleTimer = () => {
-    let nextCycle = currentCycle + 0.5;
-    if (nextCycle > config.numCycles) {
-      nextCycle = 0.5;
-    }
-    const nextDuration = getDurationOfCycle(config, nextCycle);
-    setDurationLeft(nextDuration);
-    setCurrentCycle(nextCycle);
-    setTimeout(() => startTimer(nextDuration, nextCycle), 0);
-  };
-
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     setState("idle");
-    setCurrentCycle(1);
+    setCurrentCycle(0.5);
     setIntervalId(undefined);
+    setRemainingDuration(getDurationOfCycle(settings, currentCycle));
     clearInterval(intervalId);
     workerTimerStop();
-  };
+  }, [setState, setCurrentCycle, setIntervalId]);
+
+  // place both timers in the next part of the pomodoro
+  const cycleTimer = useCallback(() => {
+    resetTimer();
+    let nextCycle = currentCycle + 0.5;
+    if (nextCycle > settings.numCycles) {
+      nextCycle = 0.5;
+    }
+    const nextDuration = getDurationOfCycle(settings, nextCycle);
+    setRemainingDuration(nextDuration);
+    setCurrentCycle(nextCycle);
+  }, [
+    resetTimer,
+    currentCycle,
+    setCurrentCycle,
+    setRemainingDuration,
+    settings,
+  ]);
+
+  // automatically cycle the timer if the current half is finished
+  useEffect(() => {
+    const onMessage = () => {
+      cycleTimer();
+    };
+    worker.addEventListener("message", onMessage);
+    return () => worker.removeEventListener("message", onMessage);
+  }, [cycleTimer]);
 
   // clean up any intervals on destroy and when intervalId changes
   useEffect(() => () => clearInterval(intervalId), [intervalId]);
 
-  // changes to config updates timer only if idle
-  useEffect(() => {
-    if (state === "idle") setDurationLeft(getDurationOfCycle(config, 0.5));
-  }, [config, setDurationLeft, state, currentCycle]);
-
   return (
-    <>
-      <pre>{JSON.stringify(getTimerObject(durationLeft), null, 2)}</pre>
-      <div>
-        <button onClick={resetTimer}>reset</button>
-        <button onClick={() => startTimer(durationLeft, currentCycle)}>
-          start
+    <div className="w-96 h-96 flex flex-col items-center justify-center rounded-full max-w-md bg-black bg-opacity-80">
+      {/* Timer */}
+      <div className="text-center mb-4">
+        <span className="block text-xl">
+          {getNameOfCycle(settings, currentCycle)}
+        </span>
+        <span className="block text-md mb-2">
+          {getCycleOfCycle(settings, currentCycle)}
+        </span>
+        <span className="w-full block font-light text-8xl tabular-nums">
+          {getMinuteRepresentation(remainingDuration)}
+        </span>
+      </div>
+
+      {/* Buttons */}
+      <div className="flex gap-4 text-lg">
+        <button className="w-7" onClick={resetTimer}>
+          <Reset />
         </button>
-        <button onClick={pauseTimer}>pause</button>
         <button
-          style={{
-            display:
-              state === "finished" || state === "paused"
-                ? "inline-block"
-                : "none",
-          }}
-          onClick={cycleTimer}
+          className={join("w-7", state !== "running" ? "block" : "hidden")}
+          onClick={startTimer}
         >
-          next
+          <Play />
+        </button>
+        <button
+          className={join("w-7", state === "running" ? "block" : "hidden")}
+          onClick={pauseTimer}
+        >
+          <Pause />
+        </button>
+
+        <button className="w-7" onClick={cycleTimer}>
+          <Next />
         </button>
       </div>
-    </>
+    </div>
   );
 };
