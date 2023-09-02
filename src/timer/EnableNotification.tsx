@@ -1,5 +1,6 @@
 import { shallow } from "zustand/shallow";
 import { useNotificationPermission } from "../app";
+import { Button } from "../components/Button";
 
 export const EnableNotification: React.FC = () => {
   const { permission, setPermission } = useNotificationPermission(
@@ -10,7 +11,7 @@ export const EnableNotification: React.FC = () => {
   if (permission === "NA") return null;
 
   return (
-    <button
+    <Button
       type="button"
       onClick={() => {
         Notification.requestPermission((permission) => {
@@ -19,6 +20,6 @@ export const EnableNotification: React.FC = () => {
       }}
     >
       enable notifcation
-    </button>
+    </Button>
   );
 };

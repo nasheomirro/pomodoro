@@ -16,7 +16,7 @@ type TimerStore = {
 
 const settings: Settings = {
   durationMins: {
-    work: 0.02,
+    work: 1.02,
     shortbreak: 2,
     longbreak: 3,
   },

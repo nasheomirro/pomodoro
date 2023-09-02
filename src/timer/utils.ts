@@ -9,7 +9,7 @@ export const getMinuteRepresentation = (durationMs: number) => {
   const seconds = (Math.ceil(durationMs / 1000) % 60)
     .toString()
     .padStart(2, "0");
-  const minutes = Math.floor(durationMs / 60_000)
+  const minutes = Math.floor(Math.ceil(durationMs / 1000) / 60)
     .toString()
     .padStart(2, "0");
   return `${minutes}:${seconds}`;

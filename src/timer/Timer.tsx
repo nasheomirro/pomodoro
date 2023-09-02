@@ -17,6 +17,7 @@ import {
 import { worker, workerTimerStart, workerTimerStop } from "./timerWorker";
 import { shallow } from "zustand/shallow";
 import { useTimer } from "../app";
+import { CountdownContainer } from "./CountdownContainer";
 
 export const Timer: React.FC = () => {
   const {
@@ -46,7 +47,6 @@ export const Timer: React.FC = () => {
       }
       setRemainingDuration(newDuration);
     }, 1000);
-    console.log(remainingDuration);
     workerTimerStart(remainingDuration);
     setState("running");
     setIntervalId(newId);
@@ -63,10 +63,10 @@ export const Timer: React.FC = () => {
     setState("idle");
     setCurrentCycle(0.5);
     setIntervalId(undefined);
-    setRemainingDuration(getDurationOfCycle(settings, currentCycle));
+    setRemainingDuration(getDurationOfCycle(settings, 0.5));
     clearInterval(intervalId);
     workerTimerStop();
-  }, [setState, setCurrentCycle, setIntervalId]);
+  }, [settings, setState, setCurrentCycle, setIntervalId]);
 
   // place both timers in the next part of the pomodoro
   const cycleTimer = useCallback(() => {
@@ -98,43 +98,49 @@ export const Timer: React.FC = () => {
   // clean up any intervals on destroy and when intervalId changes
   useEffect(() => () => clearInterval(intervalId), [intervalId]);
 
+  console.log(remainingDuration, getDurationOfCycle(settings, currentCycle));
+
   return (
-    <div className="w-96 h-96 flex flex-col items-center justify-center rounded-full max-w-md bg-black bg-opacity-80">
-      {/* Timer */}
-      <div className="text-center mb-4">
-        <span className="block text-xl">
-          {getNameOfCycle(settings, currentCycle)}
-        </span>
-        <span className="block text-md mb-2">
-          {getCycleOfCycle(settings, currentCycle)}
-        </span>
-        <span className="w-full block font-light text-8xl tabular-nums">
-          {getMinuteRepresentation(remainingDuration)}
-        </span>
-      </div>
+    <CountdownContainer
+      progress={remainingDuration / getDurationOfCycle(settings, currentCycle)}
+    >
+      <div className="max-w-full w-96 aspect-square flex flex-col items-center justify-center rounded-full">
+        {/* Timer */}
+        <div className="text-center mb-4">
+          <span className="block text-xl">
+            {getNameOfCycle(settings, currentCycle)}
+          </span>
+          <span className="block text-md mb-2">
+            {getCycleOfCycle(settings, currentCycle)}
+          </span>
+          <span className="w-full block font-light text-5xl sm:text-7xl lg:text-8xl tabular-nums">
+            {getMinuteRepresentation(remainingDuration)}
+          </span>
+        </div>
 
-      {/* Buttons */}
-      <div className="flex gap-4 text-lg">
-        <button className="w-7" onClick={resetTimer}>
-          <Reset />
-        </button>
-        <button
-          className={join("w-7", state !== "running" ? "block" : "hidden")}
-          onClick={startTimer}
-        >
-          <Play />
-        </button>
-        <button
-          className={join("w-7", state === "running" ? "block" : "hidden")}
-          onClick={pauseTimer}
-        >
-          <Pause />
-        </button>
+        {/* Buttons */}
+        <div className="flex gap-4 text-lg">
+          <button className="w-7" onClick={resetTimer}>
+            <Reset />
+          </button>
+          <button
+            className={join("w-7", state !== "running" ? "block" : "hidden")}
+            onClick={startTimer}
+          >
+            <Play />
+          </button>
+          <button
+            className={join("w-7", state === "running" ? "block" : "hidden")}
+            onClick={pauseTimer}
+          >
+            <Pause />
+          </button>
 
-        <button className="w-7" onClick={cycleTimer}>
-          <Next />
-        </button>
+          <button className="w-7" onClick={cycleTimer}>
+            <Next />
+          </button>
+        </div>
       </div>
-    </div>
+    </CountdownContainer>
   );
 };

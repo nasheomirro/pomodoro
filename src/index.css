@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"] {
+    -webkit-appearance: none;
+    margin: 0;
+    -moz-appearance: textfield !important;
+  }
+}
+
 @font-face {
   font-family: "Frank Ruhl Libre";
   src: url("frankruhllibre.ttf") format("truetype");
@@ -22,7 +32,7 @@
   -webkit-text-size-adjust: 100%;
 }
 
-html {
+html, .bg {
   background: linear-gradient(#0004, #0004 100%),
     fixed center / cover url("./sunrise-2.jpg");
 }
@@ -30,4 +40,8 @@ html {
 body,
 #root {
   @apply min-h-screen flex flex-col;
+}
+
+.countdown-container {
+  clip-path: circle(47.9% at 50% 50%);
 }
