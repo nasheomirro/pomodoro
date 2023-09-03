@@ -13,13 +13,14 @@ export const EnableNotification: React.FC = () => {
   return (
     <Button
       type="button"
+      disabled={permission === "granted"}
       onClick={() => {
         Notification.requestPermission((permission) => {
           setPermission(permission);
         });
       }}
     >
-      enable notifcation
+      {permission !== "granted" ? "enable notifcation" : "notification enabled"}
     </Button>
   );
 };

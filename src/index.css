@@ -32,11 +32,6 @@
   -webkit-text-size-adjust: 100%;
 }
 
-html, .bg {
-  background: linear-gradient(#0004, #0004 100%),
-    fixed center / cover url("./sunrise-2.jpg");
-}
-
 body,
 #root {
   @apply min-h-screen flex flex-col;

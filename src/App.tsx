@@ -1,3 +1,5 @@
+import { AttributionText } from "./components/AttributionText";
+import { BackgroundChange } from "./timer/BackgroundChange";
 import { DoneAudio } from "./timer/DoneAudio";
 import { SettingsComponent } from "./timer/Settings";
 import { Timer } from "./timer/Timer";
@@ -11,7 +13,9 @@ function App() {
       <div className="grow w-full flex items-center justify-center">
         <Timer />
       </div>
+      <BackgroundChange />
       <DoneAudio />
+      <AttributionText />
     </div>
   );
 }

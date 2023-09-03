@@ -9,6 +9,7 @@ export type Settings = {
   numCycles: number;
   /** a number from 0 - 100 for the volume */
   volume: number;
+  currentBg: number;
 };
 
 export type TimerState = "paused" | "running" | "idle";

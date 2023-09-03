@@ -97,9 +97,6 @@ export const Timer: React.FC = () => {
 
   // clean up any intervals on destroy and when intervalId changes
   useEffect(() => () => clearInterval(intervalId), [intervalId]);
-
-  console.log(remainingDuration, getDurationOfCycle(settings, currentCycle));
-
   return (
     <CountdownContainer
       progress={remainingDuration / getDurationOfCycle(settings, currentCycle)}

@@ -1,6 +1,8 @@
 import { Settings, TimerState } from "../types";
 import { getDurationOfCycle } from "../timer/utils";
 import { createWithEqualityFn } from "zustand/traditional";
+import { defaultSettings } from "./default";
+import { persist } from "zustand/middleware";
 
 type TimerStore = {
   settings: Settings;
@@ -14,46 +16,39 @@ type TimerStore = {
   setRemainingDuration: (duration: number) => void;
 };
 
-const settings: Settings = {
-  durationMins: {
-    work: 1.02,
-    shortbreak: 2,
-    longbreak: 3,
-  },
-  numCycles: 2,
-  volume: 50,
-};
-
 export const useTimer = createWithEqualityFn<TimerStore>()(
-  (set, get) => ({
-    settings,
-    state: "idle",
-    currentCycle: 0.5,
-    remainingDuration: getDurationOfCycle(settings, 0.5),
+  persist(
+    (set, get) => ({
+      settings: defaultSettings,
+      state: "idle",
+      currentCycle: 0.5,
+      remainingDuration: getDurationOfCycle(defaultSettings, 0.5),
 
-    setSettings: (settings) => {
-      const store = get();
-      const newStore = { ...store, settings };
-      // also update the remaining duration if it's idle
-      if (store.state === "idle") {
-        newStore.remainingDuration = getDurationOfCycle(
-          settings,
-          store.currentCycle
-        );
-      }
+      setSettings: (settings) => {
+        const store = get();
+        const newStore = { ...store, settings };
+        // also update the remaining duration if it's idle
+        if (store.state === "idle") {
+          newStore.remainingDuration = getDurationOfCycle(
+            settings,
+            store.currentCycle
+          );
+        }
 
-      set(newStore);
-    },
-    setCurrentCycle: (cycle) => {
-      set((store) => ({ ...store, currentCycle: cycle }));
-    },
-    setRemainingDuration: (duration) => {
-      set((store) => ({ ...store, remainingDuration: duration }));
-    },
-    setState: (state) => {
-      set((store) => ({ ...store, state }));
-    },
-  }),
+        set(newStore);
+      },
+      setCurrentCycle: (cycle) => {
+        set((store) => ({ ...store, currentCycle: cycle }));
+      },
+      setRemainingDuration: (duration) => {
+        set((store) => ({ ...store, remainingDuration: duration }));
+      },
+      setState: (state) => {
+        set((store) => ({ ...store, state }));
+      },
+    }),
+    { name: "settings" }
+  ),
   Object.is
 );
 

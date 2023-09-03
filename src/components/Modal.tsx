@@ -22,12 +22,10 @@ export const Modal: React.FC<
   }, [dialogRef]);
 
   return (
-    <dialog
-      className="max-w-md rounded bg-black bg-opacity-90 backdrop-blur-sm"
-      onClose={onClose}
-      ref={dialogRef}
-    >
-      <div className="p-8">{children}</div>
+    <dialog className="max-w-md bg-transparent p-2" onClose={onClose} ref={dialogRef}>
+      <div className="p-8  rounded bg-black bg-opacity-90 backdrop-blur-sm">
+        {children}
+      </div>
     </dialog>
   );
 };

@@ -16,6 +16,7 @@ import { ReactComponent as SettingIcon } from "../assets/settings.svg";
 import { ReactComponent as CloseIcon } from "../assets/close.svg";
 import { Input } from "../components/Input";
 import { Button } from "../components/Button";
+import { backgrounds } from "../app/default";
 
 const SettingsInput = forwardRef<
   HTMLInputElement,
@@ -122,7 +123,7 @@ export const SettingsComponent: React.FC = () => {
             </SettingsInput>
           </div>
 
-          <label className="w-full flex items-start justify-between mb-6">
+          <label className="w-full grid sm:grid-cols-2 items-start gap-2 mb-6">
             <span># of cycles</span>
             <Input
               type="number"
@@ -133,7 +134,7 @@ export const SettingsComponent: React.FC = () => {
               })}
             />
           </label>
-          <label className="w-full flex items-start justify-between mb-10">
+          <label className="w-full grid sm:grid-cols-2 items-start gap-2 mb-6">
             <span>volume</span>
             <Input
               type="number"
@@ -145,7 +146,20 @@ export const SettingsComponent: React.FC = () => {
               })}
             />
           </label>
-          <div className="flex gap-4 justify-end items-center">
+          <label className="w-full grid sm:grid-cols-2 gap-2 items-start mb-10">
+            <span>Background</span>
+            <select
+              className="bg-transparent border-b p-2"
+              {...register("currentBg")}
+            >
+              {backgrounds.map((_, i) => (
+                <option className="text-black" value={i}>
+                  Background #{i + 1}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex gap-4 flex-wrap justify-end items-center">
             <EnableNotification />
             <Button disabled={!isValid}>save settings</Button>
           </div>
