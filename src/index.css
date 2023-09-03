@@ -14,7 +14,7 @@
 
 @font-face {
   font-family: "Frank Ruhl Libre";
-  src: url("frankruhllibre.ttf") format("truetype");
+  src: url("/frankruhllibre.ttf") format("truetype");
 }
 
 :root {

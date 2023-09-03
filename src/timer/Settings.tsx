@@ -152,8 +152,8 @@ export const SettingsComponent: React.FC = () => {
               className="bg-transparent border-b p-2"
               {...register("currentBg")}
             >
-              {backgrounds.map((_, i) => (
-                <option className="text-black" value={i}>
+              {backgrounds.map((item, i) => (
+                <option key={item.url} className="text-black" value={i}>
                   Background #{i + 1}
                 </option>
               ))}
