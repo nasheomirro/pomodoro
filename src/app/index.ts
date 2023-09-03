@@ -1,8 +1,7 @@
 import { Settings, TimerState } from "../types";
 import { getDurationOfCycle } from "../timer/utils";
 import { createWithEqualityFn } from "zustand/traditional";
-import { defaultSettings } from "./default";
-import { persist } from "zustand/middleware";
+import { getDefaultSettings, setDefaultSettings } from "./default";
 
 type TimerStore = {
   settings: Settings;
@@ -17,40 +16,41 @@ type TimerStore = {
 };
 
 export const useTimer = createWithEqualityFn<TimerStore>()(
-  persist(
-    (set, get) => ({
-      settings: defaultSettings,
-      state: "idle",
-      currentCycle: 0.5,
-      remainingDuration: getDurationOfCycle(defaultSettings, 0.5),
+  (set, get) => ({
+    settings: getDefaultSettings(),
+    state: "idle",
+    currentCycle: 0.5,
+    remainingDuration: getDurationOfCycle(getDefaultSettings(), 0.5),
 
-      setSettings: (settings) => {
-        const store = get();
-        const newStore = { ...store, settings };
-        // also update the remaining duration if it's idle
-        if (store.state === "idle") {
-          newStore.remainingDuration = getDurationOfCycle(
-            settings,
-            store.currentCycle
-          );
-        }
+    setSettings: (settings) => {
+      const store = get();
+      const newStore = { ...store, settings };
+      // also update the remaining duration if it's idle
+      if (store.state === "idle") {
+        newStore.remainingDuration = getDurationOfCycle(
+          settings,
+          store.currentCycle
+        );
+      }
 
-        set(newStore);
-      },
-      setCurrentCycle: (cycle) => {
-        set((store) => ({ ...store, currentCycle: cycle }));
-      },
-      setRemainingDuration: (duration) => {
-        set((store) => ({ ...store, remainingDuration: duration }));
-      },
-      setState: (state) => {
-        set((store) => ({ ...store, state }));
-      },
-    }),
-    { name: "settings" }
-  ),
+      set(newStore);
+    },
+    setCurrentCycle: (cycle) => {
+      set((store) => ({ ...store, currentCycle: cycle }));
+    },
+    setRemainingDuration: (duration) => {
+      set((store) => ({ ...store, remainingDuration: duration }));
+    },
+    setState: (state) => {
+      set((store) => ({ ...store, state }));
+    },
+  }),
   Object.is
 );
+
+useTimer.subscribe(({ settings }) => {
+  setDefaultSettings(settings);
+});
 
 type PermissionStore = {
   permission: NotificationPermission | "NA";

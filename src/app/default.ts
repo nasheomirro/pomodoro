@@ -1,6 +1,8 @@
 import { Settings } from "../types";
 
-export const defaultSettings: Settings = {
+const storageKey = "default-settings";
+
+const defaultSettings: Settings = {
   durationMins: {
     work: 25,
     shortbreak: 5,
@@ -9,6 +11,18 @@ export const defaultSettings: Settings = {
   numCycles: 4,
   volume: 50,
   currentBg: 0,
+};
+
+export const getDefaultSettings = () => {
+  const settings = localStorage.getItem(storageKey);
+  if (!settings) {
+    return defaultSettings;
+  }
+  return JSON.parse(settings) as Settings;
+};
+
+export const setDefaultSettings = (settings: Settings) => {
+  localStorage.setItem(storageKey, JSON.stringify(settings));
 };
 
 export const backgrounds = [
